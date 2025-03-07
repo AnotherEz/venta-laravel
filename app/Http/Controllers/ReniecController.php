@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\ReniecService;
 
+
 class ReniecController extends Controller
 {
     protected $reniecService;

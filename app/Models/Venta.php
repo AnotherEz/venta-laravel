@@ -1,4 +1,5 @@
 <?php
+// app/Models/Venta.php
 
 namespace App\Models;
 
@@ -9,16 +10,26 @@ class Venta extends Model
 {
     use HasFactory;
 
-    protected $table = 'ventas'; // Nombre de la tabla
     protected $fillable = [
-        'codigo',
-        'vendedor',
-        'cliente',
+        'vendedor_id',
+        'cliente_id',
         'fecha',
         'hora',
-        'comprobante',
+        'tipo_comprobante',
         'serie',
         'correlativo',
-        'importe',
+        'importe_total'
     ];
+
+    public function cliente(){
+        return $this->belongsTo(Cliente::class, 'cliente_id', 'id_cliente');
+    }
+
+    public function vendedor(){
+        return $this->belongsTo(Vendedor::class, 'vendedor_id', 'id_vendedor');
+    }
+
+    public function detalles(){
+        return $this->hasMany(DetalleVenta::class, 'venta_id');
+    }
 }

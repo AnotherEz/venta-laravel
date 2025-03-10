@@ -1,5 +1,4 @@
 <?php
-// app/Models/CarritoProducto.php
 
 namespace App\Models;
 
@@ -15,15 +14,33 @@ class CarritoProducto extends Model
     protected $fillable = [
         'carrito_id',
         'producto_id',
+        'nombre_producto',
+        'presentacion',
         'cantidad',
-        'precio_unitario'
+        'precio_normal',
+        'precio_unitario',
+        'descuento'
     ];
 
-    public function carrito(){
+    protected $casts = [
+        'precio_normal' => 'decimal:2',
+        'precio_unitario' => 'decimal:2',
+        'descuento' => 'decimal:2',
+        'subtotal' => 'decimal:2'
+    ];
+
+    public function carrito()
+    {
         return $this->belongsTo(Carrito::class, 'carrito_id');
     }
 
-    public function producto(){
+    public function producto()
+    {
         return $this->belongsTo(Producto::class, 'producto_id', 'id_producto');
+    }
+
+    public function getSubtotalAttribute()
+    {
+        return ($this->cantidad * $this->precio_unitario) - $this->descuento;
     }
 }

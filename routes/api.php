@@ -18,6 +18,10 @@ Route::apiResource('clientes', ClienteController::class);
 Route::apiResource('vendedores', VendedorController::class);
 Route::apiResource('descuentos', DescuentoController::class);
 Route::apiResource('carrito', CarritoController::class);
+Route::get('productos/buscar', [ProductoController::class, 'buscar']); // 🔹 Debe estar antes
+Route::post('/agregar-producto-carrito', [ProductoController::class, 'agregarProductoAlCarrito']);
+Route::delete('/eliminar-producto-carrito', [ProductoController::class, 'eliminarProductoDelCarrito']);
+
 Route::apiResource('carrito-producto', CarritoProductoController::class);
 Route::apiResource('detalles-venta', DetalleVentaController::class);
 
@@ -29,7 +33,8 @@ Route::post('/pago', [PagoController::class, 'procesarPago']);
 // Registrar venta
 Route::post('/venta', [VentaController::class, 'registrarVenta']);
 
-Route::get('productos/buscar', [ProductoController::class, 'buscar']); // 🔹 Debe estar antes
+
 Route::apiResource('productos', ProductoController::class);
 // Consultar DNI en RENIEC
 Route::get('/reniec/{dni}', [ReniecController::class, 'buscarDni']);
+

@@ -22,5 +22,6 @@ class Producto extends Model
         'descuento',
         'stock_disponible',
         'descripcion',
+        'presentacion',
     ];
 }

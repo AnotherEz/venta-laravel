@@ -12,12 +12,17 @@ class CreateCarritoProductoTable extends Migration
             $table->id();
             $table->unsignedBigInteger('carrito_id');
             $table->unsignedBigInteger('producto_id');
-            $table->integer('cantidad');
-            $table->decimal('precio_unitario', 10,2);
-            // Usamos storedAs para columna generada (disponible en MySQL 5.7+)
-            $table->decimal('subtotal', 10,2)->storedAs('cantidad * precio_unitario');
+            $table->string('nombre_producto', 255); // 🔹 Nombre del producto en el momento de la compra
+            $table->string('presentacion', 255); // 🔹 Presentación del producto (Ej: Frasco 700mL)
+            $table->integer('cantidad')->default(1);
+            $table->decimal('precio_normal', 10, 2); // 🔹 Precio normal sin descuento
+            $table->decimal('precio_unitario', 10, 2); // 🔹 Precio con descuento aplicado
+            $table->decimal('descuento', 10, 2)->default(0.00); // 🔹 Descuento aplicado
+            $table->decimal('subtotal', 10, 2)->storedAs('(cantidad * precio_unitario) - descuento'); // 🔹 Subtotal con descuento aplicado
+
             $table->foreign('carrito_id')->references('id')->on('carrito')->onDelete('cascade');
             $table->foreign('producto_id')->references('id_producto')->on('productos')->onDelete('cascade');
+
             $table->timestamps();
         });
     }

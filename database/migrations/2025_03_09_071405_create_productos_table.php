@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -19,6 +18,7 @@ class CreateProductosTable extends Migration
             $table->decimal('descuento', 10, 2)->nullable();
             $table->integer('stock_disponible')->nullable();
             $table->text('descripcion')->nullable();
+            $table->string('presentacion', 255)->nullable(); // 🔹 Nueva columna
             $table->timestamps();
         });
     }

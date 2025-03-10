@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/CarritoProductoController.php
 
 namespace App\Http\Controllers;
 
@@ -8,44 +7,25 @@ use Illuminate\Http\Request;
 
 class CarritoProductoController extends Controller
 {
-    public function index()
-    {
-        $items = CarritoProducto::all();
-        return response()->json($items);
-    }
-
     public function store(Request $request)
     {
-        $item = CarritoProducto::create($request->all());
-        return response()->json($item, 201);
-    }
+        $producto = CarritoProducto::create([
+            'carrito_id' => $request->carrito_id,
+            'producto_id' => $request->producto_id,
+            'cantidad' => $request->cantidad
+        ]);
 
-    public function show($id)
-    {
-        $item = CarritoProducto::find($id);
-        if (!$item) {
-            return response()->json(['error' => 'Elemento de carrito no encontrado'], 404);
-        }
-        return response()->json($item);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $item = CarritoProducto::find($id);
-        if (!$item) {
-            return response()->json(['error' => 'Elemento de carrito no encontrado'], 404);
-        }
-        $item->update($request->all());
-        return response()->json($item);
+        return response()->json($producto, 201);
     }
 
     public function destroy($id)
     {
-        $item = CarritoProducto::find($id);
-        if (!$item) {
-            return response()->json(['error' => 'Elemento de carrito no encontrado'], 404);
+        $producto = CarritoProducto::find($id);
+        if (!$producto) {
+            return response()->json(['error' => 'Producto no encontrado en el carrito'], 404);
         }
-        $item->delete();
-        return response()->json(null, 204);
+
+        $producto->delete();
+        return response()->json(['message' => 'Producto eliminado del carrito'], 204);
     }
 }

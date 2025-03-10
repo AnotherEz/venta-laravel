@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\ReniecService;
-
+use App\Models\Cliente; // Importar el modelo Cliente
 
 class ReniecController extends Controller
 {
@@ -17,12 +17,31 @@ class ReniecController extends Controller
 
     public function buscarDni($dni)
     {
-        $data = $this->reniecService->getDniData($dni);
-
-        if ($data) {
-            return response()->json($data);
+        // 🔍 Verificar si el cliente ya existe
+        $cliente = Cliente::where('dni_ruc', $dni)->first();
+        if ($cliente) {
+            return response()->json($cliente);
         }
-
-        return response()->json(['error' => 'DNI no encontrado'], 404);
+    
+        // 🔍 Llamar a la API de RENIEC
+        $data = $this->reniecService->getDniData($dni);
+    
+        // 📌 Debug: Imprime lo que devuelve la API
+        \Log::info('Respuesta de RENIEC:', $data);
+    
+        // 🔍 Verificar si la API devolvió datos correctos
+        if (!isset($data['nombres']) || !isset($data['apellido_paterno']) || !isset($data['apellido_materno'])) {
+            return response()->json(['error' => 'DNI no encontrado o respuesta inválida'], 404);
+        }
+    
+        // 🆕 Crear nuevo cliente si no existe
+        $nuevoCliente = Cliente::create([
+            'dni_ruc' => $dni,
+            'nombre_cliente' => "{$data['nombres']} {$data['apellido_paterno']} {$data['apellido_materno']}",
+            'contador_compras' => 0,
+        ]);
+    
+        return response()->json($nuevoCliente, 201);
     }
+    
 }

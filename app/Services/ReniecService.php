@@ -16,11 +16,8 @@ class ReniecService
 
     private function getToken()
     {
-        // Método 1: Selección aleatoria (más simple)
-        //return $this->apiTokens[array_rand($this->apiTokens)];
-
-        // Método 2: Rotación cíclica (opcional)
-         session(['token_index' => (session('token_index', 0) + 1) % count($this->apiTokens)]);
+        // Método de rotación cíclica para seleccionar token
+        session(['token_index' => (session('token_index', 0) + 1) % count($this->apiTokens)]);
         return $this->apiTokens[session('token_index')];
     }
 
@@ -35,7 +32,14 @@ class ReniecService
         ])->post($this->apiUrl, ['dni' => $dni]);
 
         if ($response->successful()) {
-            return $response->json();
+            $data = $response->json();
+
+            // 📌 Verifica si "data" existe en la respuesta y lo devuelve
+            if (isset($data['data'])) {
+                return $data['data']; // 🔹 Extrae solo los datos dentro de "data"
+            }
+
+            return null; // Si no existe "data", devuelve null
         }
 
         return null;

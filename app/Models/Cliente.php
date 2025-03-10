@@ -1,5 +1,4 @@
 <?php
-// app/Models/Cliente.php
 
 namespace App\Models;
 
@@ -10,6 +9,7 @@ class Cliente extends Model
 {
     use HasFactory;
 
+    protected $table = 'clientes'; // Asegurar que la tabla se usa correctamente
     protected $primaryKey = 'id_cliente';
 
     protected $fillable = [

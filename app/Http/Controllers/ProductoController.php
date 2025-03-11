@@ -91,12 +91,13 @@ class ProductoController extends Controller
                     'carrito_id' => $validated['carrito_id'],
                     'producto_id' => $validated['producto_id'],
                     'nombre_producto' => $producto->nombre_producto,
-                    'presentacion' => $producto->presentacion, // 🔹 Nueva columna
+                    'presentacion' => $producto->presentacion,
                     'cantidad' => $validated['cantidad'],
-                    'precio_normal' => $producto->precio_unitario, // Precio sin descuento
-                    'precio_unitario' => $producto->precio_unitario - $producto->descuento, // Precio con descuento
-                    'descuento' => $producto->descuento, // Aplicar descuento si existe
+                    'precio_unitario' => $producto->precio_unitario,
+                    'precio_normal' => $producto->precio_unitario * $validated['cantidad'], // Multiplicación por cantidad
+                    'descuento' => $producto->descuento, // Aplicar descuento directamente
                 ]);
+                
             }
 
             // Reducir stock del producto
@@ -114,34 +115,47 @@ class ProductoController extends Controller
      * ❌ Eliminar producto del carrito y restaurar stock
      */
     public function eliminarProductoDelCarrito(Request $request)
-    {
-        try {
-            $validated = $request->validate([
-                'carrito_id' => 'required|exists:carrito,id',
-                'producto_id' => 'required|exists:productos,id_producto',
-            ]);
+{
+    try {
+        $validated = $request->validate([
+            'carrito_id' => 'required|exists:carrito,id',
+            'producto_id' => 'required|exists:productos,id_producto',
+            'cantidad' => 'required|integer|min:1',
+        ]);
 
-            $carritoProducto = CarritoProducto::where([
-                'carrito_id' => $validated['carrito_id'],
-                'producto_id' => $validated['producto_id']
-            ])->first();
+        // Buscar el producto en el carrito
+        $carritoProducto = CarritoProducto::where([
+            'carrito_id' => $validated['carrito_id'],
+            'producto_id' => $validated['producto_id']
+        ])->first();
 
-            if (!$carritoProducto) {
-                return response()->json(['error' => 'Producto no encontrado en el carrito'], 404);
-            }
-
-            // Restaurar stock del producto antes de eliminarlo
-            $producto = Producto::find($validated['producto_id']);
-            $producto->stock_disponible += $carritoProducto->cantidad;
-            $producto->save();
-
-            // Eliminar producto del carrito
-            $carritoProducto->delete();
-
-            return response()->json(['message' => 'Producto eliminado del carrito'], 200);
-        } catch (\Exception $e) {
-            Log::error("Error al eliminar producto del carrito", ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Error interno en el servidor'], 500);
+        if (!$carritoProducto) {
+            return response()->json(['error' => 'Producto no encontrado en el carrito'], 404);
         }
+
+        // Obtener el producto para restaurar stock
+        $producto = Producto::find($validated['producto_id']);
+        if ($producto) {
+            $producto->stock_disponible += min($validated['cantidad'], $carritoProducto->cantidad);
+            $producto->save();
+        }
+
+        // Verificar si hay que eliminar toda la fila o solo reducir la cantidad
+        if ($carritoProducto->cantidad > $validated['cantidad']) {
+            $carritoProducto->cantidad -= $validated['cantidad'];
+            $carritoProducto->save();
+            return response()->json(['message' => 'Cantidad eliminada del carrito'], 200);
+        } else {
+            $carritoProducto->delete();
+            return response()->json(['message' => 'Producto eliminado del carrito'], 200);
+        }
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json(['error' => 'Datos inválidos', 'detalles' => $e->errors()], 422);
+    } catch (\Exception $e) {
+        Log::error("Error al eliminar producto del carrito", ['error' => $e->getMessage()]);
+        return response()->json(['error' => 'Error interno en el servidor'], 500);
     }
+}
+
+    
 }

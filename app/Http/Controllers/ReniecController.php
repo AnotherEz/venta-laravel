@@ -31,7 +31,6 @@ class ReniecController extends Controller
             // 🔍 Verificar si el cliente ya existe
             $cliente = Cliente::where('dni_ruc', $dni)->first();
             if ($cliente) {
-                // 📌 Si el cliente existe, gestionar su carrito sin afectar la respuesta
                 $this->gestionarCarrito($cliente->id_cliente);
                 return response()->json($cliente);
             }
@@ -39,10 +38,8 @@ class ReniecController extends Controller
             // 🔍 Llamar a la API de RENIEC
             $data = $this->reniecService->getDniData($dni);
 
-            // 📌 Debug: Imprime lo que devuelve la API
             Log::info('Respuesta de RENIEC:', (array) $data);
 
-            // 🔍 Verificar si la API devolvió datos correctos
             if (!isset($data['nombres']) || !isset($data['apellido_paterno']) || !isset($data['apellido_materno'])) {
                 return response()->json(['error' => 'DNI no encontrado o respuesta inválida'], 404);
             }
@@ -54,7 +51,7 @@ class ReniecController extends Controller
                 'contador_compras' => 0,
             ]);
 
-            // 📌 Gestionar su carrito (crear si no tiene)
+            // 📌 Gestionar su carrito
             $this->gestionarCarrito($nuevoCliente->id_cliente);
 
             return response()->json($nuevoCliente, 201);
@@ -67,21 +64,58 @@ class ReniecController extends Controller
         }
     }
 
-    /**
-     * 📌 Gestiona el carrito del cliente:
-     * - Si no tiene carrito, se crea uno nuevo.
-     * - Si ya tiene, se vacía (eliminando todos los productos).
-     */
+    public function buscarRuc($ruc)
+    {
+        try {
+            // 🔍 Validación básica del RUC
+            if (!is_numeric($ruc) || strlen($ruc) !== 11) {
+                return response()->json(['error' => 'RUC inválido'], 400);
+            }
+
+            // 🔍 Verificar si el cliente ya existe
+            $cliente = Cliente::where('dni_ruc', $ruc)->first();
+            if ($cliente) {
+                $this->gestionarCarrito($cliente->id_cliente);
+                return response()->json($cliente);
+            }
+
+            // 🔍 Llamar a la API de RUC
+            $data = $this->reniecService->getRucData($ruc);
+
+            Log::info('Respuesta de RUC:', (array) $data);
+
+            if (!isset($data['nombre_o_razon_social'])) {
+                return response()->json(['error' => 'RUC no encontrado o respuesta inválida'], 404);
+            }
+
+            // 🆕 Crear nuevo cliente
+            $nuevoCliente = Cliente::create([
+                'dni_ruc' => $ruc,
+                'nombre_cliente' => $data['nombre_o_razon_social'],
+                'contador_compras' => 0,
+            ]);
+
+            // 📌 Gestionar su carrito
+            $this->gestionarCarrito($nuevoCliente->id_cliente);
+
+            return response()->json($nuevoCliente, 201);
+        } catch (QueryException $e) {
+            Log::error('Error en base de datos: ' . $e->getMessage());
+            return response()->json(['error' => 'Error de base de datos'], 500);
+        } catch (Exception $e) {
+            Log::error('Error en buscarRuc: ' . $e->getMessage());
+            return response()->json(['error' => 'Error interno del servidor'], 500);
+        }
+    }
+
     private function gestionarCarrito($clienteId)
     {
         try {
             $carrito = Carrito::where('cliente_id', $clienteId)->first();
 
             if ($carrito) {
-                // Si ya tiene carrito, eliminar todos sus productos
                 CarritoProducto::where('carrito_id', $carrito->id)->delete();
             } else {
-                // Si no tiene, crear un nuevo carrito
                 Carrito::create([
                     'cliente_id' => $clienteId,
                     'fecha_creacion' => now(),

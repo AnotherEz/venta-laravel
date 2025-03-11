@@ -40,7 +40,9 @@ class CarritoProducto extends Model
     }
 
     public function getSubtotalAttribute()
-    {
-        return ($this->cantidad * $this->precio_unitario) - $this->descuento;
-    }
+{
+    $precioNormal = $this->precio_unitario * $this->cantidad;
+    return $precioNormal - $this->descuento;
+}
+
 }

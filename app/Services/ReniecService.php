@@ -5,12 +5,14 @@ use Illuminate\Support\Facades\Http;
 
 class ReniecService
 {
-    private $apiUrl;
+    private $apiUrlDni;
+    private $apiUrlRuc;
     private $apiTokens;
 
     public function __construct()
     {
-        $this->apiUrl = "https://apiperu.dev/api/dni"; 
+        $this->apiUrlDni = "https://apiperu.dev/api/dni";
+        $this->apiUrlRuc = "https://apiperu.dev/api/ruc";
         $this->apiTokens = explode(',', env('RENIEC_API_TOKENS')); // Convierte la cadena en un array
     }
 
@@ -23,23 +25,35 @@ class ReniecService
 
     public function getDniData($dni)
     {
-        $token = $this->getToken(); // Obtener un token disponible
+        $token = $this->getToken();
 
         $response = Http::withHeaders([
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
             'Authorization' => "Bearer {$token}"
-        ])->post($this->apiUrl, ['dni' => $dni]);
+        ])->post($this->apiUrlDni, ['dni' => $dni]);
 
         if ($response->successful()) {
             $data = $response->json();
+            return $data['data'] ?? null; // Devuelve los datos o null si no existen
+        }
 
-            // 📌 Verifica si "data" existe en la respuesta y lo devuelve
-            if (isset($data['data'])) {
-                return $data['data']; // 🔹 Extrae solo los datos dentro de "data"
-            }
+        return null;
+    }
 
-            return null; // Si no existe "data", devuelve null
+    public function getRucData($ruc)
+    {
+        $token = $this->getToken();
+
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+            'Authorization' => "Bearer {$token}"
+        ])->post($this->apiUrlRuc, ['ruc' => $ruc]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            return $data['data'] ?? null; // Devuelve los datos o null si no existen
         }
 
         return null;

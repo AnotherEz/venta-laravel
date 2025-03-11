@@ -1,5 +1,4 @@
 <?php
-// app/Models/Venta.php
 
 namespace App\Models;
 
@@ -16,20 +15,24 @@ class Venta extends Model
         'fecha',
         'hora',
         'tipo_comprobante',
-        'serie',
-        'correlativo',
         'importe_total'
     ];
 
-    public function cliente(){
+    // Relación con Cliente
+    public function cliente()
+    {
         return $this->belongsTo(Cliente::class, 'cliente_id', 'id_cliente');
     }
 
-    public function vendedor(){
+    // Relación con Vendedor
+    public function vendedor()
+    {
         return $this->belongsTo(Vendedor::class, 'vendedor_id', 'id_vendedor');
     }
 
-    public function detalles(){
+    // Relación con Detalles de Venta
+    public function detalles()
+    {
         return $this->hasMany(DetalleVenta::class, 'venta_id');
     }
 }

@@ -15,12 +15,12 @@ class CreateVentasTable extends Migration
             $table->date('fecha');
             $table->time('hora');
             $table->string('tipo_comprobante', 50);
-            $table->string('serie', 10);
-            $table->integer('correlativo');
-            $table->decimal('importe_total', 10,2);
+            $table->decimal('importe_total', 10, 2);
+            $table->timestamps();
+
+            // Claves foráneas
             $table->foreign('vendedor_id')->references('id_vendedor')->on('vendedores')->onDelete('cascade');
             $table->foreign('cliente_id')->references('id_cliente')->on('clientes')->onDelete('cascade');
-            $table->timestamps();
         });
     }
 

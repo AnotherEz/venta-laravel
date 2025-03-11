@@ -11,6 +11,7 @@ class Vendedor extends Model
     use HasFactory;
 
     protected $primaryKey = 'id_vendedor';
+    protected $table = 'vendedores'; // Aquí defines el nombre completo de la tabla
 
     protected $fillable = [
         'dni',
@@ -20,4 +21,6 @@ class Vendedor extends Model
         'telefono',
         'email'
     ];
+
+    
 }

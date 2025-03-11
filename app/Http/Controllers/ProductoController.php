@@ -93,8 +93,9 @@ class ProductoController extends Controller
                     'nombre_producto' => $producto->nombre_producto,
                     'presentacion' => $producto->presentacion,
                     'cantidad' => $validated['cantidad'],
-                    'precio_unitario' => $producto->precio_unitario,
                     'precio_normal' => $producto->precio_unitario * $validated['cantidad'], // Multiplicación por cantidad
+                    'precio_unitario' => $producto->precio_unitario,
+                   
                     'descuento' => $producto->descuento, // Aplicar descuento directamente
                 ]);
                 

@@ -1,92 +1,60 @@
 <?php
-// app/Http/Controllers/VentaController.php
-
-// app/Http/Controllers/VentaController.php
 
 namespace App\Http\Controllers;
 
 use App\Models\Venta;
-use App\Models\Carrito;
-use App\Models\Producto;
 use Illuminate\Http\Request;
 
 class VentaController extends Controller
 {
-    // Método para registrar la venta
-    public function registrarVenta(Request $request)
+    public function store(Request $request)
     {
-        // Validar los datos
-        $request->validate([
-            'tipo_venta' => 'required|string',
-            'tipo_pago' => 'required|string',
-            'monto' => 'required|numeric|min:0',
-            'cliente_id' => 'required|exists:clientes,id',
+        $validated = $request->validate([
+            'vendedor_id' => 'required|exists:vendedores,id_vendedor',
+            'cliente_id' => 'required|exists:clientes,id_cliente',
+            'fecha' => 'required|date',
+            'hora' => 'required|date_format:H:i:s', 
+            'tipo_comprobante' => 'required|string',
+            'importe_total' => 'required|numeric',
         ]);
-
-        // Obtener productos del carrito
-        $carrito = Carrito::where('user_id', $request->user_id)->get();
-        $total = $carrito->sum('subtotal');
-        
-        // Verificar el monto del pago
-        $this->validarPago($request, $total);
-
-        // Crear la venta
-        $venta = new Venta([
-            'cliente_id' => $request->cliente_id,
-            'vendedor_id' => $request->vendedor_id,  // Usamos el vendedor_id que viene en la solicitud
-            'importe_total' => $total,
-            'tipo_comprobante' => $request->tipo_venta,
-            'serie' => $request->tipo_venta == 'Factura' ? 'F001' : 'B001',
-            'correlativo' => $this->generarCorrelativo($request->tipo_venta),
-        ]);
-        $venta->save();
-
-        // Agregar productos a la venta
-        foreach ($carrito as $item) {
-            Producto::find($item->producto_id)->decrement('stock_disponible', $item->cantidad);
-
-            // Crear los detalles de la venta
-            $venta->detalles()->create([
-                'producto_id' => $item->producto_id,
-                'cantidad' => $item->cantidad,
-                'precio_unitario' => $item->precio_unitario,
-                'subtotal' => $item->subtotal,
-            ]);
-        }
-
-        // Limpiar el carrito después de la venta
-        $carrito->each->delete();
-
-        // Mostrar el mensaje de éxito con los datos de la venta
+    
+        // Creamos la venta
+        $venta = Venta::create($validated);
+    
+        // Devuelve la venta en la clave "venta"
         return response()->json([
-            'success' => 'Venta realizada con éxito.',
-            'venta' => $venta,
-            'detalles' => $venta->detalles,
-        ]);
+            'venta' => $venta
+        ], 201);
     }
 
-    // Método para generar un correlativo basado en el tipo de venta
-    private function generarCorrelativo($tipo_venta)
-    {
-        $venta = Venta::where('tipo_comprobante', $tipo_venta)->latest()->first();
-        return $venta ? $venta->correlativo + 1 : 1001;
-    }
+    public function index()
+{
+    $ventas = Venta::with(['cliente', 'vendedor'])->get();
 
-    // Validación de pago
-    private function validarPago(Request $request, $total)
-    {
-        if ($request->tipo_pago == 'Efectivo') {
-            if ($request->monto < $total) {
-                return response()->json(['error' => 'El monto es insuficiente.'], 400);
-            }
-        } elseif ($request->tipo_pago == 'Tarjeta') {
-            if ($request->monto != $total) {
-                return response()->json(['error' => 'El monto no coincide con el total.'], 400);
-            }
-        } elseif ($request->tipo_pago == 'Mixto') {
-            if ($request->efectivo + $request->tarjeta != $total) {
-                return response()->json(['error' => 'La suma de los montos no es correcta.'], 400);
-            }
-        }
-    }
+    // Transformar cada venta para incluir "nombreCliente" y "nombreVendedor" concatenados
+    $ventasTransformadas = $ventas->map(function ($venta) {
+        // Concatenamos los nombres y apellidos del vendedor directamente
+        $nombreVendedor = ($venta->vendedor) 
+            ? $venta->vendedor->nombres . ' ' . $venta->vendedor->apellido_paterno . ' ' . $venta->vendedor->apellido_materno
+            : 'Sin vendedor';
+
+        return [
+            'id' => $venta->id,
+            'fecha' => $venta->fecha,
+            'hora' => $venta->hora,
+            'tipo_comprobante' => $venta->tipo_comprobante,
+            'importe_total' => $venta->importe_total,
+            'cliente_id' => $venta->cliente_id,
+            'vendedor_id' => $venta->vendedor_id,
+            'nombreCliente' => $venta->cliente->nombre_cliente ?? 'Sin cliente',
+            'nombreVendedor' => $nombreVendedor, // Aquí ya está concatenado
+        ];
+    });
+
+    return response()->json($ventasTransformadas);
+}
+
+    
+    
+
 }

@@ -1,4 +1,7 @@
 <?php
+
+namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 use App\Models\Vendedor;
 
@@ -6,17 +9,13 @@ class VendedorSeeder extends Seeder
 {
     public function run()
     {
-        // Insertamos vendedores de ejemplo
         Vendedor::create([
-            'nombre' => 'Carlos Pérez',
-            'email' => 'carlos@ejemplo.com',
-            'telefono' => '999123456',
-        ]);
-
-        Vendedor::create([
-            'nombre' => 'Ana Gómez',
-            'email' => 'ana@ejemplo.com',
-            'telefono' => '998765432',
+            'dni' => '74589624',
+            'nombres' => 'Eduardo',
+            'apellido_paterno' => 'Fernandez',
+            'apellido_materno' => '',
+            'telefono' => '923851639',
+            'email' => 'fernandez@gmail.com'
         ]);
     }
 }

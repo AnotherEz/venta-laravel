@@ -13,7 +13,7 @@ class VendedorSeeder extends Seeder
             'dni' => '74589624',
             'nombres' => 'Eduardo',
             'apellido_paterno' => 'Fernandez',
-            'apellido_materno' => '',
+            'apellido_materno' => 'Flores',
             'telefono' => '923851639',
             'email' => 'fernandez@gmail.com'
         ]);

@@ -21,7 +21,7 @@ class VentaController extends Controller
         // Creamos la venta
         $venta = Venta::create($validated);
     
-        // Devuelve la venta en la clave "venta"
+        // Devuelve la venta 
         return response()->json([
             'venta' => $venta
         ], 201);
@@ -31,9 +31,9 @@ class VentaController extends Controller
 {
     $ventas = Venta::with(['cliente', 'vendedor'])->get();
 
-    // Transformar cada venta para incluir "nombreCliente" y "nombreVendedor" concatenados
+
     $ventasTransformadas = $ventas->map(function ($venta) {
-        // Concatenamos los nombres y apellidos del vendedor directamente
+        
         $nombreVendedor = ($venta->vendedor) 
             ? $venta->vendedor->nombres . ' ' . $venta->vendedor->apellido_paterno . ' ' . $venta->vendedor->apellido_materno
             : 'Sin vendedor';

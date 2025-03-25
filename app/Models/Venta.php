@@ -9,13 +9,16 @@ class Venta extends Model
 {
     use HasFactory;
 
+    protected $table = 'ventas'; // si es "ventas"
+    
     protected $fillable = [
         'vendedor_id',
         'cliente_id',
         'fecha',
         'hora',
         'tipo_comprobante',
-        'importe_total'
+        'importe_total',
+        'tipo_documento',     // <-- Nuevo campo
     ];
 
     // Relación con Cliente
